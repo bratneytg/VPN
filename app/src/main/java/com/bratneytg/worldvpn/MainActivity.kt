@@ -1,8 +1,10 @@
 package com.bratneytg.worldvpn
 
 import android.app.Activity
+import android.content.Intent
 import android.net.VpnService
 import android.os.Bundle
+import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -97,6 +99,9 @@ fun WorldVpnApp(vm: VpnViewModel = viewModel()) {
                 onImport = vm::importServers,
                 onClearImported = vm::clearImported,
                 onDismissMessage = vm::dismissImportMessage,
+                onOpenVpnSettings = {
+                    context.startActivity(Intent(Settings.ACTION_VPN_SETTINGS))
+                },
                 onBack = { screen = Screen.Home },
             )
         }

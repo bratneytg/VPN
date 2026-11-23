@@ -42,7 +42,8 @@ class VpnViewModel(application: Application) : AndroidViewModel(application) {
     fun connect() {
         val server = selectedServer() ?: return
         if (!server.isConfigured) return
-        val privateKey = repo.privateKey()
+        // Si el servidor generó las claves del móvil, se usan; si no, la clave propia del dispositivo
+        val privateKey = server.clientPrivateKey.ifBlank { repo.privateKey() }
         viewModelScope.launch {
             VpnController.connect(getApplication(), server, privateKey)
         }

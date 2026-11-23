@@ -2,34 +2,37 @@
 #
 # Convierte un VPS Ubuntu/Debian en un servidor WireGuard para la app WorldVPN.
 #
-# Uso (como root, en el VPS de cada ubicación):
-#   sudo ./setup-server.sh <ID> <CLAVE_PUBLICA_DEL_MOVIL> [Nombre] [País] [Bandera] [Región]
+# Uso más simple (como root, en el servidor; no hace falta ningún argumento):
+#   sudo bash setup-server.sh
 #
-# Ejemplo:
-#   sudo ./setup-server.sh de-fra "AbCd...=" "Fráncfort" "Alemania" "🇩🇪" "Europa"
+# Genera las claves del móvil en el propio servidor y al final imprime UNA línea JSON.
+# Cópiala y pégala en la app: Ajustes -> Importar.
 #
-# - <ID> debe coincidir con el "id" de la ubicación en app/src/main/assets/servers.json
-#   (de-fra, jp-tyo, us-nyc...). Los demás argumentos solo hacen falta si es una ubicación nueva.
-# - <CLAVE_PUBLICA_DEL_MOVIL> la copias en la app: Ajustes -> "Copiar clave".
+# Uso avanzado:
+#   sudo bash setup-server.sh [ID] [CLAVE_PUBLICA_DEL_MOVIL|auto] [Nombre] [País] [Bandera] [Región]
 #
-# Al terminar imprime un JSON: cópialo y pégalo en la app (Ajustes -> Importar).
-# Este script admite UN dispositivo por servidor (10.66.66.2). Si lo vuelves a ejecutar con otra
-# clave, sustituye a la anterior.
+#   ID        id de la ubicación en app/src/main/assets/servers.json (por defecto: us-ash)
+#   CLAVE     clave pública que muestra la app (Ajustes -> Copiar clave). Con "auto" (por
+#             defecto) el servidor crea las claves del móvil y las incluye en el JSON.
+#   El resto solo hace falta para ubicaciones que no estén en servers.json.
+#
+# Este script admite UN dispositivo por servidor (10.66.66.2). Si lo vuelves a ejecutar,
+# sustituye al dispositivo anterior.
 
 set -euo pipefail
 
 if [[ $EUID -ne 0 ]]; then
-  echo "Ejecuta este script como root (sudo)." >&2
+  echo "Ejecuta este script como root: sudo bash setup-server.sh" >&2
   exit 1
 fi
 
-if [[ $# -lt 2 ]]; then
-  sed -n '3,17p' "$0" | sed 's/^# \{0,1\}//'
+if ! command -v apt-get >/dev/null 2>&1; then
+  echo "Este script necesita Ubuntu o Debian (apt-get)." >&2
   exit 1
 fi
 
-ID="$1"
-CLIENT_PUB="$2"
+ID="${1:-us-ash}"
+CLIENT_PUB="${2:-auto}"
 NAME="${3:-}"
 COUNTRY="${4:-}"
 FLAG="${5:-}"
@@ -39,8 +42,9 @@ PORT="${WG_PORT:-51820}"
 SERVER_ADDR="10.66.66.1/24"
 CLIENT_ADDR="10.66.66.2/32"
 
-if ! [[ "$CLIENT_PUB" =~ ^[A-Za-z0-9+/]{43}=$ ]]; then
-  echo "La clave pública del móvil no parece válida (debe tener 44 caracteres y acabar en '=')." >&2
+if [[ "$CLIENT_PUB" != "auto" ]] && ! [[ "$CLIENT_PUB" =~ ^[A-Za-z0-9+/]{43}=$ ]]; then
+  echo "La clave pública del móvil no parece válida (44 caracteres, acaba en '=')." >&2
+  echo "Si prefieres que el servidor la genere, no pases ningún argumento." >&2
   exit 1
 fi
 
@@ -52,11 +56,19 @@ apt-get install -y wireguard iptables curl >/dev/null
 umask 077
 mkdir -p /etc/wireguard
 
+# Claves del servidor (se reutilizan si ya existen)
 if [[ ! -s /etc/wireguard/server_private.key ]]; then
   wg genkey | tee /etc/wireguard/server_private.key | wg pubkey > /etc/wireguard/server_public.key
 fi
 SERVER_PRIV="$(cat /etc/wireguard/server_private.key)"
 SERVER_PUB="$(cat /etc/wireguard/server_public.key)"
+
+# Claves del móvil (modo automático)
+CLIENT_PRIV=""
+if [[ "$CLIENT_PUB" == "auto" ]]; then
+  CLIENT_PRIV="$(wg genkey)"
+  CLIENT_PUB="$(printf '%s' "$CLIENT_PRIV" | wg pubkey)"
+fi
 
 IFACE="$(ip -4 route show default | awk '{print $5; exit}')"
 if [[ -z "$IFACE" ]]; then
@@ -71,6 +83,7 @@ if [[ -z "$PUBLIC_IP" ]]; then
 fi
 
 echo "==> Escribiendo /etc/wireguard/wg0.conf (salida por $IFACE)..."
+# Las reglas se INSERTAN (-I) al principio: las imágenes Ubuntu de Oracle traen REJECT al final
 cat > /etc/wireguard/wg0.conf <<EOF
 [Interface]
 Address = ${SERVER_ADDR}
@@ -94,7 +107,7 @@ if command -v ufw >/dev/null 2>&1 && ufw status | grep -q "Status: active"; then
   ufw allow "${PORT}/udp" >/dev/null
 fi
 
-echo "==> Arrancando WireGuard..."
+echo "==> Arrancando WireGuard (y arranque automático al reiniciar)..."
 systemctl enable wg-quick@wg0 >/dev/null 2>&1
 systemctl restart wg-quick@wg0
 
@@ -104,14 +117,22 @@ JSON="{ \"id\": \"${ID}\""
 [[ -n "$COUNTRY" ]] && JSON+=", \"country\": \"${COUNTRY}\""
 [[ -n "$FLAG"    ]] && JSON+=", \"flag\": \"${FLAG}\""
 [[ -n "$REGION"  ]] && JSON+=", \"region\": \"${REGION}\""
-JSON+=", \"endpoint\": \"${PUBLIC_IP}\", \"port\": ${PORT}, \"publicKey\": \"${SERVER_PUB}\" }"
+JSON+=", \"endpoint\": \"${PUBLIC_IP}\", \"port\": ${PORT}, \"publicKey\": \"${SERVER_PUB}\""
+[[ -n "$CLIENT_PRIV" ]] && JSON+=", \"clientPrivateKey\": \"${CLIENT_PRIV}\""
+JSON+=" }"
 
 echo
 echo "=============================================================="
-echo " Servidor listo. Recuerda abrir el puerto UDP ${PORT} en el firewall"
-echo " de tu proveedor (panel web del VPS)."
+echo " Servidor listo."
+echo " Comprueba que el puerto UDP ${PORT} está abierto en el firewall"
+echo " de tu proveedor (en Oracle: Security List de la subred)."
 echo
-echo " Copia esta línea y pégala en la app (Ajustes -> Importar):"
+echo " Copia la línea siguiente y pégala en la app (Ajustes -> Importar):"
 echo
 echo "${JSON}"
+echo
+if [[ -n "$CLIENT_PRIV" ]]; then
+  echo " ATENCIÓN: esa línea contiene la clave privada de tu móvil."
+  echo " Es un secreto: no la compartas y bórrala del chat/portapapeles tras importarla."
+fi
 echo "=============================================================="

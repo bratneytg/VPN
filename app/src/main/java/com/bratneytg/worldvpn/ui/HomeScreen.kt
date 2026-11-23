@@ -94,7 +94,11 @@ fun HomeScreen(
         }
         VpnState.Disconnected -> {
             title = "Desconectado"
-            subtitle = if (canConnect) "Toca el botón para conectar" else "Esta ubicación aún no tiene servidor"
+            subtitle = if (canConnect) {
+                "Toca el botón para conectar"
+            } else {
+                "Falta configurar tu servidor: Ajustes → Importar"
+            }
         }
     }
 

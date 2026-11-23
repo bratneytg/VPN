@@ -44,6 +44,7 @@ fun SettingsScreen(
     onImport: (String) -> Unit,
     onClearImported: () -> Unit,
     onDismissMessage: () -> Unit,
+    onOpenVpnSettings: () -> Unit,
     onBack: () -> Unit,
 ) {
     val clipboard = LocalClipboardManager.current
@@ -74,11 +75,24 @@ fun SettingsScreen(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
+            // --- Protección contra fugas (kill switch de Android) ---
+            SectionCard(
+                title = "Evitar fugas de tráfico",
+                description = "Si la VPN se cae, Android puede bloquear internet hasta que vuelva, " +
+                    "para que nada salga sin cifrar. En los ajustes de VPN de Android, pulsa la " +
+                    "rueda dentada junto a WorldVPN y activa \"VPN siempre activa\" y " +
+                    "\"Bloquear conexiones sin VPN\".",
+            ) {
+                Button(onClick = onOpenVpnSettings) {
+                    Text("Abrir ajustes de VPN de Android")
+                }
+            }
+
             // --- Clave del dispositivo ---
             SectionCard(
-                title = "Clave pública de este móvil",
-                description = "Cada servidor necesita conocer esta clave para aceptar tu conexión. " +
-                    "Pásala al script server/setup-server.sh al crear un servidor.",
+                title = "Clave pública de este móvil (modo avanzado)",
+                description = "Solo la necesitas si pasas tu propia clave a setup-server.sh. " +
+                    "Si ejecutas el script sin argumentos, el servidor genera las claves y no hace falta.",
             ) {
                 SelectionContainer {
                     Text(

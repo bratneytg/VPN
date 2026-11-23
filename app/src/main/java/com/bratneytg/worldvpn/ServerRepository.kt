@@ -48,12 +48,14 @@ class ServerRepository(context: Context) {
         require(incoming.isNotEmpty()) { "No he encontrado ningún servidor con el campo \"id\"." }
 
         for (o in incoming) {
-            val key = o.optString("publicKey").trim()
-            if (key.isNotEmpty()) {
-                try {
-                    Key.fromBase64(key)
-                } catch (e: Exception) {
-                    throw IllegalArgumentException("La clave pública de \"${o.optString("id")}\" no es válida.")
+            for (field in listOf("publicKey", "clientPrivateKey")) {
+                val key = o.optString(field).trim()
+                if (key.isNotEmpty()) {
+                    try {
+                        Key.fromBase64(key)
+                    } catch (e: Exception) {
+                        throw IllegalArgumentException("El campo \"$field\" de \"${o.optString("id")}\" no es una clave válida.")
+                    }
                 }
             }
         }

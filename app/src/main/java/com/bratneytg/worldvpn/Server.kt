@@ -17,9 +17,14 @@ data class Server(
     val publicKey: String,
     val clientAddress: String,
     val dns: String,
+    /** Si el servidor generó las claves del móvil (setup-server.sh sin argumentos), va aquí. */
+    val clientPrivateKey: String = "",
 ) {
     val isConfigured: Boolean
         get() = endpoint.isNotBlank() && publicKey.isNotBlank()
+
+    // Evita que la clave privada acabe en logs si alguien imprime el objeto
+    override fun toString(): String = "Server($id)"
 
     companion object {
         const val DEFAULT_PORT = 51820
@@ -40,6 +45,7 @@ data class Server(
                 publicKey = o.optString("publicKey").trim(),
                 clientAddress = o.optString("clientAddress").ifBlank { DEFAULT_CLIENT_ADDRESS },
                 dns = o.optString("dns").ifBlank { DEFAULT_DNS },
+                clientPrivateKey = o.optString("clientPrivateKey").trim(),
             )
         }
     }

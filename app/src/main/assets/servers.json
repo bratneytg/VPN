@@ -1,27 +1,13 @@
 {
   "servers": [
-    { "id": "de-fra", "name": "Fráncfort",       "country": "Alemania",        "flag": "🇩🇪", "region": "Europa",        "endpoint": "", "publicKey": "" },
-    { "id": "gb-lon", "name": "Londres",         "country": "Reino Unido",     "flag": "🇬🇧", "region": "Europa",        "endpoint": "", "publicKey": "" },
-    { "id": "fr-par", "name": "París",           "country": "Francia",         "flag": "🇫🇷", "region": "Europa",        "endpoint": "", "publicKey": "" },
-    { "id": "nl-ams", "name": "Ámsterdam",       "country": "Países Bajos",    "flag": "🇳🇱", "region": "Europa",        "endpoint": "", "publicKey": "" },
-    { "id": "es-mad", "name": "Madrid",          "country": "España",          "flag": "🇪🇸", "region": "Europa",        "endpoint": "", "publicKey": "" },
-    { "id": "se-sto", "name": "Estocolmo",       "country": "Suecia",          "flag": "🇸🇪", "region": "Europa",        "endpoint": "", "publicKey": "" },
-
-    { "id": "us-nyc", "name": "Nueva York",      "country": "Estados Unidos",  "flag": "🇺🇸", "region": "América",       "endpoint": "", "publicKey": "" },
-    { "id": "us-lax", "name": "Los Ángeles",     "country": "Estados Unidos",  "flag": "🇺🇸", "region": "América",       "endpoint": "", "publicKey": "" },
-    { "id": "ca-tor", "name": "Toronto",         "country": "Canadá",          "flag": "🇨🇦", "region": "América",       "endpoint": "", "publicKey": "" },
-    { "id": "mx-mex", "name": "Ciudad de México","country": "México",          "flag": "🇲🇽", "region": "América",       "endpoint": "", "publicKey": "" },
-    { "id": "br-sao", "name": "São Paulo",       "country": "Brasil",          "flag": "🇧🇷", "region": "América",       "endpoint": "", "publicKey": "" },
-
-    { "id": "jp-tyo", "name": "Tokio",           "country": "Japón",           "flag": "🇯🇵", "region": "Asia",          "endpoint": "", "publicKey": "" },
-    { "id": "kr-sel", "name": "Seúl",            "country": "Corea del Sur",   "flag": "🇰🇷", "region": "Asia",          "endpoint": "", "publicKey": "" },
-    { "id": "sg-sin", "name": "Singapur",        "country": "Singapur",        "flag": "🇸🇬", "region": "Asia",          "endpoint": "", "publicKey": "" },
-    { "id": "in-bom", "name": "Bombay",          "country": "India",           "flag": "🇮🇳", "region": "Asia",          "endpoint": "", "publicKey": "" },
-
-    { "id": "ae-dxb", "name": "Dubái",           "country": "Emiratos Árabes", "flag": "🇦🇪", "region": "Oriente Medio", "endpoint": "", "publicKey": "" },
-
-    { "id": "au-syd", "name": "Sídney",          "country": "Australia",       "flag": "🇦🇺", "region": "Oceanía",       "endpoint": "", "publicKey": "" },
-
-    { "id": "za-jnb", "name": "Johannesburgo",   "country": "Sudáfrica",       "flag": "🇿🇦", "region": "África",        "endpoint": "", "publicKey": "" }
+    {
+      "id": "us-ash",
+      "name": "Virginia (cerca de Nueva York)",
+      "country": "Estados Unidos",
+      "flag": "🇺🇸",
+      "region": "América",
+      "endpoint": "",
+      "publicKey": ""
+    }
   ]
 }
