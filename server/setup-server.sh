@@ -76,8 +76,8 @@ cat > /etc/wireguard/wg0.conf <<EOF
 Address = ${SERVER_ADDR}
 ListenPort = ${PORT}
 PrivateKey = ${SERVER_PRIV}
-PostUp = iptables -A FORWARD -i wg0 -j ACCEPT; iptables -A FORWARD -o wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o ${IFACE} -j MASQUERADE
-PostDown = iptables -D FORWARD -i wg0 -j ACCEPT; iptables -D FORWARD -o wg0 -j ACCEPT; iptables -t nat -D POSTROUTING -o ${IFACE} -j MASQUERADE
+PostUp = iptables -I INPUT -p udp --dport ${PORT} -j ACCEPT; iptables -I FORWARD -i wg0 -j ACCEPT; iptables -I FORWARD -o wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o ${IFACE} -j MASQUERADE
+PostDown = iptables -D INPUT -p udp --dport ${PORT} -j ACCEPT; iptables -D FORWARD -i wg0 -j ACCEPT; iptables -D FORWARD -o wg0 -j ACCEPT; iptables -t nat -D POSTROUTING -o ${IFACE} -j MASQUERADE
 
 [Peer]
 PublicKey = ${CLIENT_PUB}

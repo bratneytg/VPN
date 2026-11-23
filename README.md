@@ -35,6 +35,14 @@ como *"Sin servidor"* hasta que despliegues uno. Así se activa cada una (≈5 m
 No hace falta recompilar para añadir servidores. Si prefieres dejarlos fijos en la app, rellena
 `endpoint` y `publicKey` en `app/src/main/assets/servers.json`.
 
+### Oracle Cloud (capa gratuita)
+
+- Crea la instancia con imagen **Ubuntu 22.04/24.04** (no Oracle Linux: el script usa `apt`).
+- Además del firewall del script, abre **UDP 51820** en la *Security List* de la subred (VCN →
+  subred → Default Security List → Add Ingress Rules → UDP, destino 51820, origen 0.0.0.0/0).
+- La instancia gratuita *Micro* limita Internet a ~50 Mbps y Oracle puede recuperar instancias
+  inactivas; ver https://docs.oracle.com/en-us/iaas/Content/FreeTier/resourceref.htm
+
 Para una ubicación que no esté en la lista, pasa nombre, país, bandera y región al script:
 
 ```bash
